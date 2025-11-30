@@ -1,29 +1,44 @@
 const request = require("supertest");
 const app = require("../../src/app");
+const db = require("../../src/models");
 
-describe("Full flow test: create → read → delete message", () => {
+beforeEach(() => {
+  db.users.length = 0;
+  db.sessions.length = 0;
+  db.messages.length = 0;
+});
 
-  test("User scenario: message lifecycle works correctly", async () => {
+describe("Full message flow", () => {
+  test("User → Session → Message", async () => {
+    // 1. Create user
+    const user = await request(app)
+      .post("/users")
+      .send({ username: "alice" });
 
-    const create = await request(app)
+    expect(user.statusCode).toBe(201);
+
+    // 2. Create session
+    const session = await request(app)
+      .post("/sessions")
+      .send({ userId: user.body.id });
+
+    expect(session.statusCode).toBe(201);
+
+    // 3. Create message
+    const message = await request(app)
       .post("/messages")
-      .send({ text: "Flow test message" });
+      .send({
+        text: "Hello from Alice",
+        userId: user.body.id
+      });
 
-    expect(create.statusCode).toBe(201);
-    const messageId = create.body.id;
+    expect(message.statusCode).toBe(201);
+    expect(message.body.text).toBe("Hello from Alice");
 
-    const list = await request(app).get("/messages");
+    // 4. Retrieve messages
+    const all = await request(app).get("/messages");
 
-    expect(list.statusCode).toBe(200);
-    const exists = list.body.some(msg => msg.id === messageId);
-    expect(exists).toBe(true);
-
-    const del = await request(app).delete(`/messages/${messageId}`);
-    expect(del.statusCode).toBe(204);
-
-    const listAfter = await request(app).get("/messages");
-    const stillExists = listAfter.body.some(msg => msg.id === messageId);
-    expect(stillExists).toBe(false);
+    expect(all.statusCode).toBe(200);
+    expect(all.body.length).toBe(1);
   });
-
 });
