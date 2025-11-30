@@ -1,9 +1,13 @@
-import { Router } from 'express';
+const express = require("express");
+const router = express.Router();
+const Session = require("../models/session");
+const db = require("../models");
 
-const router = Router();
-
-router.get('/', (req, res) => {
-  return res.send(req.context.models.users[req.context.me.id]);
+router.post("/", (req, res) => {
+  const { userId } = req.body;
+  const session = new Session({ userId });
+  db.sessions.push(session);
+  res.status(201).json(session);
 });
 
-export default router;
+module.exports = router;
