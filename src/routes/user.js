@@ -1,13 +1,16 @@
-import { Router } from 'express';
+const express = require("express");
+const router = express.Router();
+const User = require("../models/user");
+const db = require("../models");
 
-const router = Router();
-
-router.get('/', (req, res) => {
-  return res.send(Object.values(req.context.models.users));
+router.get("/", (req, res) => {
+  res.json(db.users);
 });
 
-router.get('/:userId', (req, res) => {
-  return res.send(req.context.models.users[req.params.userId]);
+router.post("/", (req, res) => {
+  const user = new User(req.body);
+  db.users.push(user);
+  res.status(201).json(user);
 });
 
-export default router;
+module.exports = router;
