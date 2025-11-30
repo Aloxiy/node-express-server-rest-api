@@ -1,9 +1,12 @@
-import session from './session';
-import user from './user';
-import message from './message';
+const express = require("express");
+const userRoutes = require("./user");
+const messageRoutes = require("./message");
+const sessionRoutes = require("./session");
 
-export default {
-  session,
-  user,
-  message,
-};
+const router = express.Router();
+
+router.use("/users", userRoutes);
+router.use("/messages", messageRoutes);
+router.use("/sessions", sessionRoutes);
+
+module.exports = router;
